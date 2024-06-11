@@ -1,0 +1,415 @@
+---
+title: "Análise Exploratória do Campeonato Brasileiro de Futebol (2003-2023)"
+author: "Nikolas N. Figueiredo"
+date: "11 de junho de 2024"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    css: custom.css
+    number_sections: true
+    code_folding: hide
+  pdf_document:
+    toc: true
+bibliography: Reference.bib
+csl: abnt.csl
+---
+
+```{r, echo=FALSE}
+#knitr::opts_chunk$set(comment = NA)
+```
+
+------------------------------------------------------------------------
+
+# **Introdução**
+
+Este relatório surge como um estudo do Campeonato Brasileiro Série A, que é um dos objetos de estudo da minha dissertação de mestrado em Estatística Aplicada e Biometria. As análises foram feitas em linguagem R utilizando a IDE RStudio e o relatório foi gerado em R Markdown. Os dados utilizados foram disponibilizados por @CampBR, por meio da plataforma Kaggle. Ainda, parte fundamental do trabalho de um estatístico é criar e manipular dados. Assim, este relatório busca deixar esse processo explícito, tanto como forma de valorizar essas ferramentas quanto para garantir a replicabilidade dessa análise.
+
+## **Objetivos do Relatório**
+
+O objetivo deste relatório é apresentar uma análise exploratória dos dados do Campeonato Brasileiro Série A, com foco em identificar padrões, tendências e insights que possam ser úteis para análises futuras e para a tomada de decisões estratégicas na elaboração de modelos de predição.
+
+### **Objetivos Específicos**
+
+Ainda deseja-se:
+
+-   Observar quais times participaram dessa competição.
+
+-   Contabilizar a participação dos times e sua relevância para a competição.
+
+-   Entender a distribuição dos gols na competição.
+
+-   Visualizar a distribuição dos jogos em relação aos estádios e aos estados do Brasil.
+
+## **Pacotes Utilizados**
+
+```{r, message=F, class.source = 'fold-show'}
+#Pacotes
+library(tidyverse)
+
+```
+
+------------------------------------------------------------------------
+
+# **Primeiro Contato com os Dados**
+
+Leitura dos dados.
+
+```{r, echo=T, collapse=F, class.source = 'fold-show'}
+br <- read_csv("br.csv")
+```
+
+Observando a estrutura dos dados, é possível visualizar uma tabela com **8.405** linhas e **17** colunas. Cada uma dessas linhas representa uma partida, contendo informações sobre a data, hora, local da partida; informações dos times que se enfrentaram, a formação técnica e o técnico responsável; e informações sobre o resultado do confronto, como placar e time vencedor.
+
+```{r, echo=T,results='markup', collapse=F, , class.source = 'fold-show'}
+glimpse(br)
+```
+
+**Observação**: Ao contrário do que o comando acima sugere, as colunas de formação tática e do técnico responsável pelos times mandante e visitante não são colunas inteiramente compostas por "NA". As informações sobre o técnico começaram a ser coletadas a partir de 2014, e em 2015 foram adicionadas informações sobre a formação dos times. Como essas variáveis não têm impacto significativo nos objetivos da análise, a abordagem adotada foi: manter os dados existentes, não adotar nenhuma técnica de completamento dos dados faltantes e apenas observar essas métricas a partir dos anos indicados.
+
+```{r, echo=T, collapse=T, class.source = 'fold-show'}
+sum(table(br$formacao_mandante))
+sum(table(br$formacao_visitante))
+sum(table(br$tecnico_mandante))
+sum(table(br$tecnico_visitante))
+```
+
+------------------------------------------------------------------------
+
+# **Análise dos Dados**
+
+Esta análise está dividida em três perspectivas: primeiro em relação ao formato do campeonato; segundo, em relação aos times e suas métricas; e por fim, em relação aos estádios e estados.
+
+## **O Campeonato e Seu Formato**
+
+Estão representados nesse banco de dados, os campeonatos de 2003 a 2023, totalizando **21** edições, **8.405** partidas e **818** rodadas. A 69ª edição está acontecendo em 2024, seguindo a mesma estrutura dos anos anteriores. Uma observação importante é sobre o campeonato de 2016, que foi encerrado com apenas 379 partidas. Isso aconteceu devido à tragédia com o time da Chapecoense.
+
+```{r tabela-ano, echo=T, results='markup'}
+# Número de times por ano
+num_times_por_ano <- br |>
+  select(ano, mandante, visitante) |>
+  gather(key = "tipo", value = "time", -ano) |>
+  distinct(ano, time) |>
+  group_by(ano) |>
+  summarise(`Número de times` = n(), .groups = "drop")
+
+# Número de rodadas por ano
+num_rodadas_por_ano <- br |>
+  group_by(ano, rodata) |>
+  summarise(`Número de rodadas` = n_distinct(rodata), .groups = "drop") |>
+  group_by(ano) |>
+  summarise(`Número de rodadas` = n(), .groups = "drop")
+
+# Contar o número de jogos por ano e renomear as colunas
+jogos_por_ano <- br |>
+  count(ano) |>
+  rename('Ano' = ano, 'Número de jogos' = n)
+
+# Combinar as informações de número de times e número de rodadas com o número de jogos por ano
+resultados_completos <- jogos_por_ano |>
+  left_join(num_times_por_ano, by = c("Ano" = "ano")) |>
+  left_join(num_rodadas_por_ano, by = c("Ano" = "ano"))
+
+# Ajustar a exibição para mostrar todas as linhas do tibble no console
+print(resultados_completos, n = Inf)
+```
+
+## **Os Times e Suas Métricas**
+
+Sobre os times que compõem o banco, é possível dizer a partir da observação da tabela abaixo:
+
+-   **45 times** participaram pelo menos de um ano de competição.
+
+-   Os times têm uma tendência de se alternarem entre os anos de competição.
+
+-   **América de Natal, Barueri, Brasiliense, CSA, Grêmio Prudente, Ipatinga, Joinville e Santo André** participaram somente uma vez desse campeonato.
+
+-   **Flamengo, Santos e São Paulo** estiveram presentes em todas as edições observadas.
+
+-   O **Santos**, com **1.178 gols** ao longo de 21 campeonatos, é o time que mais fez gols, seguido pelo **Flamengo** com **1.169 gols**.
+
+-   O **América de Natal** e o **CSA** atingiram apenas **24 gols** em sua única participação na competição, sendo esse o menor valor dessa variável.
+
+-   O **Joinville** destaca-se por sua defesa, que sofreu apenas **48 gols**, apresentando a melhor performance nesse aspecto, em sua breve passagem pela Série A em 2015.
+
+-   O **Fluminense** se destacou negativamente por sua defesa, uma vez que sofreu **1.032 gols**. Entretanto, isso não foi suficiente para tirá-lo da Série A do campeonato. Ainda sobre gols sofridos, em segundo lugar está o **Santos**, com **982 gols**.
+
+-   Quando se trata de vitórias, **São Paulo** lidera com **365** triunfos, refletindo uma consistência notável ao longo do período analisado.
+
+-   O desempenho na tabela de empates é liderado pelo **Corinthians** e também pelo **São Paulo**, ambos com **229 empates**.
+
+-   O **Fluminense**, com **283** derrotas, destaca-se como o time que mais enfrentou adversidades. Logo em seguida está o **Athletico Paranaense** com **282** derrotas.
+
+```{r}
+# Contar o número de anos de participação como mandante
+part_ano <- br |>
+  select(ano, mandante) |>
+  distinct() |>
+  count(mandante, name = 'Part')
+
+# Combinar as contagens de mandante e visitante para obter o número total de jogos por time
+times <- c(br$mandante, br$visitante)
+tab_freq <- table(sort(times)) |>
+  as.data.frame() |>
+  rename('Time' = Var1, 'Nº jogos' = Freq)
+
+# Contar o número de vitórias, empates e derrotas para cada time
+vitórias <- br |>
+  mutate(
+    vencedor = ifelse(mandante_Placar > visitante_Placar, mandante, ifelse(mandante_Placar < visitante_Placar, visitante, NA))
+  ) |>
+  filter(!is.na(vencedor)) |>
+  count(vencedor, name = 'Vit')
+
+empates<- br |>
+  filter(mandante_Placar == visitante_Placar) |>
+  select(mandante,visitante)
+
+empates <- c(empates$mandante, empates$visitante)|>
+  sort()|>
+  table() |>
+  as.data.frame()|>
+  rename("time" = Var1, "Emp" = Freq)
+
+
+derrotas <- br |>
+  mutate(
+    perdedor = ifelse(mandante_Placar < visitante_Placar, mandante, ifelse(mandante_Placar > visitante_Placar, visitante, NA))
+  ) |>
+  filter(!is.na(perdedor)) |>
+  count(perdedor, name = 'Der')
+
+# Contar o número de gols feitos e sofridos por cada time
+gols_feitos <- br |>
+  group_by(mandante) |>
+  summarise(Gols_Feitos_Mandante = sum(mandante_Placar, na.rm = TRUE)) |>
+  full_join(
+    br |>
+      group_by(visitante) |>
+      summarise(Gols_Feitos_Visitante = sum(visitante_Placar, na.rm = TRUE)),
+    by = c("mandante" = "visitante")
+  ) |>
+  mutate(Gols_Feitos = Gols_Feitos_Mandante + Gols_Feitos_Visitante) |>
+  select(mandante, Gols_Feitos)
+
+gols_sofridos <- br |>
+  group_by(mandante) |>
+  summarise(Gols_Sofridos_Mandante = sum(visitante_Placar, na.rm = TRUE)) |>
+  full_join(
+    br |>
+      group_by(visitante) |>
+      summarise(Gols_Sofridos_Visitante = sum(mandante_Placar, na.rm = TRUE)),
+    by = c("mandante" = "visitante")
+  ) |>
+  mutate(Gols_Sofridos = Gols_Sofridos_Mandante + Gols_Sofridos_Visitante) |>
+  select(mandante, Gols_Sofridos)
+
+# Combinar a contagem de anos de participação com a contagem de jogos e resultados
+tab_freq <- tab_freq |>
+  left_join(part_ano, by = c("Time" = "mandante")) |>
+  left_join(vitórias, by = c("Time" = "vencedor")) |>
+  left_join(empates, by = c("Time" = "time")) |>
+  left_join(derrotas, by = c("Time" = "perdedor")) |>
+  left_join(gols_feitos, by = c("Time" = "mandante")) |>
+  left_join(gols_sofridos, by = c("Time" = "mandante")) |>
+  replace_na(list('Vit' = 0, 'Emp' = 0, 'Der' = 0, 'Gols_Feitos' = 0, 'Gols_Sofridos' = 0))
+
+# Ajustar a exibição para mostrar todas as linhas do tibble no console
+print(tab_freq)
+
+```
+
+Agora, observando essas métricas ponderadas pela quantidade de participações dos times, nota-se que:
+
+-   **São Paulo**, **Palmeiras** e **Internacional** lideram o ranking de vitórias médias com, respectivamente, **17,38**; **17,32** e **16,95 vitórias** por ano de competição.
+
+-   **América de Natal**, **Prudente** e **Joinville** não ultrapassaram **7 vitórias**.
+
+-   **Ceará**, **Guarani** e **Barueri** são os times que em média mais empataram, com, respectivamente, **13,14**; **13** e **13 empates** por ano de competição.
+
+-   **América de Natal**, **Santa Cruz** e **CSA** são os times com as maiores médias de derrotas, com, respectivamente, **29**; **23,5** e **22 derrotas** por ano de competição.
+
+-   **São Paulo**, **Corinthians** e **Palmeiras** obtiveram as menores médias de derrotas.
+
+-   Surpreendentemente, **Paysandu** é o time que mais fez gols em média, com **64,33 gols por ano**, foram **193 gols** em apenas **3 anos** de participações no campeonato. Seguido por **Barueri**, **Palmeiras** e **Atlético Mineiro** com **59**; **56,68** e **56,55 gols por ano**, respectivamente.
+
+-   Da mesma forma que os jogadores do **Paysandu** fizeram muitos gols, também sofreram muitos gols, com uma média de **81,67 gols por ano**. Em seguida estão o **América de Natal**, **Santa Cruz** e **Brasiliense**.
+
+-   Os times que obtiveram os menores números de gols médios foram o **Cuiabá**, **Corinthians** e **São Paulo**, nessa ordem.
+
+```{r }
+
+tab_freq_media <- tab_freq |>
+  mutate(
+    Vit_Med = round(Vit / Part , 2),
+    Emp_Med = round(Emp / Part , 2),
+    Der_Med = round(Der / Part , 2),
+    Gols_F_Med = round(Gols_Feitos / Part , 2),
+    Gols_S_Med = round(Gols_Sofridos / Part , 2)
+  )
+
+tab_freq_media <- tab_freq_media |>
+  select(
+    Time, `Nº jogos`, Part,
+    Vit_Med, Emp_Med, Der_Med,
+    Gols_F_Med, Gols_S_Med
+  ) 
+
+print(tab_freq_media)
+
+```
+
+### **Gols e Sua Distribuição**
+
+Nesses 21 anos de competição foram feitos **21.586 gols**, que foram distribuídos de 0 a 7. A **média** e o **desvio padrão** são, respectivamente, **1,28** e **1,16 gols**.
+
+```{r, echo=T}
+# Criação do vetor de gols combinando os placares de mandantes e visitantes
+gols <- c(br$mandante_Placar, br$visitante_Placar)
+
+cat("Número total de gols =", sum(gols),"\n","\n",
+    
+    "Média de gols = ", round(mean(gols),2),"\n",
+    "desvio padrão =", round(sd(gols),2),"\n","\n",
+    
+    "Média dos gols do mandante =", round(mean(br$mandante_Placar),2), "\n",
+    "desvio padrão dos gols do mandante=", round(sd(br$mandante_Placar),2),"\n","\n",
+    
+    "Média dos gols do visitante =", round(mean(br$visitante_Placar),2), "\n",
+    "desvio padrão dos gols do visitante =", round(sd(br$visitante_Placar),2)
+    )
+```
+
+Os valores exatos de sua distribuição estão representados abaixo, e também por meio de um gráfico de agulhas.
+
+```{r, echo=T}
+# Tabela de frequências dos gols
+gols_freq <- data.frame(table(gols))
+colnames(gols_freq) <- c("Gols", "Frequência")
+
+print(gols_freq)
+# Converter a coluna Gols para numérica
+gols_freq$Gols <- as.numeric(as.character(gols_freq$Gols))
+
+# Plotagem do gráfico de agulhas
+ggplot(gols_freq, aes(x = Gols, y = Frequência)) +
+  geom_segment(aes(x = Gols, xend = Gols, y = 0, yend = Frequência), color = "blue") +
+  geom_point(color = "blue") +
+  theme_minimal() +
+  labs(title = "Distribuição de Gols",
+       x = "Número de Gols",
+       y = "Frequência") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Ao observarmos a distribuição do número de gols, é bastante plausível tentar associar essa distribuição a outra distribuição teórica que se aproxime dos dados. Nesse sentido, @Arruda afirma que o número de gols de uma partida segue uma distribuição de Poisson. Por isso, foi plotado abaixo o comparativo dos dados observados e dos valores obtidos de uma distribuição de Poisson com λ = 1,28.
+
+```{r, echo=T, warning=F}
+# Criação do vetor de gols combinando os placares de mandantes e visitantes
+gols <- c(br$mandante_Placar, br$visitante_Placar)
+
+# Tabela de frequências dos gols
+gols_freq <- data.frame(table(gols))
+colnames(gols_freq) <- c("Gols", "Frequência")
+
+# Converter a coluna Gols para numérica
+gols_freq$Gols <- as.numeric(as.character(gols_freq$Gols))
+
+# Cálculo dos valores da distribuição de Poisson com média 1.284117
+lambda <- mean(gols)
+max_gols <- max(gols_freq$Gols)
+gols_poisson <- 0:max_gols
+poisson_prob <- dpois(gols_poisson, lambda) * sum(gols_freq$Frequência)
+
+# Criação do data frame para a distribuição de Poisson
+poisson_df <- data.frame(Gols = gols_poisson, Frequência = poisson_prob)
+
+# Criar o gráfico com legenda
+ggplot() +
+  geom_segment(data = gols_freq, aes(x = Gols, xend = Gols, y = 0, yend = Frequência, color = "Frequência Observada")) +
+  geom_point(data = gols_freq, aes(x = Gols, y = Frequência, color = "Frequência Observada")) +
+  geom_segment(data = poisson_df, aes(x = Gols + 0.1, xend = Gols + 0.1, y = 0, yend = Frequência, color = "Distribuição de Poisson")) +
+  geom_point(data = poisson_df, aes(x = Gols + 0.1, y = Frequência, color = "Distribuição de Poisson")) +
+  scale_color_manual(values = c("Frequência Observada" = "blue", "Distribuição de Poisson" = "red")) +
+  theme_minimal() +
+  labs(title = "Distribuição de Gols Junto a Distribuição de Poisson",
+       x = "Número de Gols",
+       y = "Frequência",
+       color = "Legenda") +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = c(0.85, 0.85))
+```
+
+## **Os Estádios e Seus Estados**
+
+Outra perspectiva que podemos observar nos dados é quanto ao local de realização das partidas. Assim, nota-se que:
+
+-   Em ordem decrescente, os 10 principais estádios do campeonato são: **Maracanã, Mineirão, Morumbi, Arena da Baixada, Vila Belmiro, Engenhão, Couto Pereira, Serra Dourada, Pacaembu e São Januário**.
+
+-   Em cada edição do campeonato, acontecem em torno de **30 partidas** no Maracanã, enquanto no Independência ocorrem apenas **4 ou menos**.
+
+-   Os estádios: **Antônio Guimarães, Castelão de São Luís, Juiz de Fora, Luiz Lacerda, Mj José Levi Sobrinho, Primeiro de Maio São Bernardo do Campo e Vila Olímpica** sediaram apenas uma partida dessa competição.
+
+```{r, echo=T, warning=F}
+# Contar a frequência de jogos em cada arena
+freq_campos <- br |>
+  count(arena) |>
+  mutate(
+    n_pond = n/21
+  )|>
+rename("Campo" = arena, "Nº partidas"= n, "Nº partidas/ Nº camp"= n_pond)
+  
+# Ajustar a exibição para mostrar todas as linhas do tibble no console
+print(freq_campos, n = Inf)
+```
+
+De maneira mais ampla, podemos observar o impacto que cada estado tem nessa competição. Por exemplo:
+
+-   **São Paulo** foi o estado que sediou mais jogos, totalizando mais de 2 mil jogos nesses 21 anos. Em seguida, estão os estados do Rio de Janeiro, Rio Grande do Sul, Minas Gerais e Paraná.
+
+-   A região Sudeste tem forte influência no campeonato, ao contrário da região Norte e Nordeste.
+
+```{r, echo=T, warning=F}
+# Lista de todos os estados do Brasil com nomes completos
+estados_brasil <- data.frame(
+  Sigla = c("AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"),
+  Estado = c("Acre", "Alagoas", "Amapá", "Amazonas", "Bahia", "Ceará", "Distrito Federal", "Espírito Santo", "Goiás", "Maranhão", "Mato Grosso", "Mato Grosso do Sul", "Minas Gerais", "Pará", "Paraíba", "Paraná", "Pernambuco", "Piauí", "Rio de Janeiro", "Rio Grande do Norte", "Rio Grande do Sul", "Rondônia", "Roraima", "Santa Catarina", "São Paulo", "Sergipe", "Tocantins")
+)
+
+# Contar a quantidade de jogos que aconteceram em cada estado
+jogos_por_estado <- br |>
+  select(mandante_Estado) |>
+  count(mandante_Estado, name = 'Número de Jogos') |>
+  rename('Sigla' = mandante_Estado)
+
+# Criar um dataframe com todos os estados e combinar com a contagem de jogos
+jogos_por_estado_completo <- estados_brasil |>
+  left_join(jogos_por_estado, by = "Sigla") |>
+  replace_na(list('Número de Jogos' = 0)) 
+
+
+# Ajustar a exibição para mostrar todas as linhas do tibble no console
+print(jogos_por_estado_completo)
+```
+
+Observação: Esta tabela foi preenchida de acordo com o estado do time mandante; assim, jogos que aconteceram em campos que não são de domínio do mandante não foram contabilizados.
+
+------------------------------------------------------------------------
+
+# **Conclusões**
+
+Ao final desta análise, observou-se que 45 times deixaram sua marca nesse campeonato, uns foram mais singelos e outros mais intensos. Nesse sentido, observou-se que existe um núcleo de times com uma baixa rotatividade e um conjunto maior com uma rotatividade frequente. Ainda afirmo que esse campeonato tende ao favoritismo, já que times cariocas ou paulistas têm maior influência e relevância dentro dessa competição. Isso pode ser justificado por vários fatores, entre eles a infraestrutura dos estádios nesses estados.
+
+Nesse sentido, a coluna de campo e estado precisa ser melhor elaborada, pois apresenta inconsistências em relação ao nome dos campos e não traz o estado do campo. Uma vez que o estado em que ocorre a partida não precisa ser necessariamente o estado que o mandante representa e/ou tem torcida.
+
+Para compreender mais sobre o Campeonato Brasileiro, mais informações seriam bem-vindas. Em especial, informações sobre a posição de um time na tabela do campeonato, como uma espécie de série temporal de cada time.
+
+Para realizar previsões sobre o Campeonato 2024, observou-se que a distribuição de Poisson pode ser muito útil, uma vez que ela se aproxima com certa precisão dos valores observados.
+
+# **Referências**
+
+-   @SoftwareR
+-   @RStudio
+-   @RMarkdown

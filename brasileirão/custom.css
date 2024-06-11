@@ -1,0 +1,9 @@
+body {
+  background-color: #DBE5EF; /* Cor de fundo */
+  font-size: 18px; /* Tamanho da fonte */
+  text-align: justify;
+}
+
+p {
+  text-indent: 2em;
+}
