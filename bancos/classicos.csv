@@ -1,0 +1,27 @@
+Estado,Classico,Time1,Time2,Compartilham Estadio?,EstadioTime1,EstadioTime2,Considerar?
+Sao Paulo,Majestoso,Corinthians,Sao Paulo,Nao,Neo Quimica Arena,Morumbi,s
+Sao Paulo,Choque-Rei,Palmeiras,Sao Paulo,Nao,Allianz Parque,Morumbi,s
+Sao Paulo,Derbi Paulista,Palmeiras,Corinthians,Nao,Allianz Parque,Neo Quimica Arena,s
+Sao Paulo,San-Sao,Santos,Sao Paulo,Nao,Vila Belmiro,Morumbi,s
+Sao Paulo,Classico da Saudade,Palmeiras,Santos,Nao,Allianz Parque,Vila Belmiro,s
+Sao Paulo,Classico Alvinegro,Corinthians,Santos,Nao,Neo Quimica Arena,Vila Belmiro,s
+Rio de Janeiro,Fla-Flu,Flamengo,Fluminense,Sim,Maracana,Maracana,s
+Rio de Janeiro,Classico dos Milhões,Flamengo,Vasco,Parcialmente,Maracana,Maracana,s
+Rio de Janeiro,Classico da Amizade,Flamengo,Botafogo,Nao,Maracana,Nilton Santos,s
+Rio de Janeiro,Classico Vovô,Botafogo,Fluminense,Parcialmente,Nilton Santos,Maracana,s
+Rio de Janeiro,Classico dos Gigantes,Vasco,Fluminense,Parcialmente,Sao Januario,Maracana,s
+Rio de Janeiro,Classico da Rivalidade,Botafogo,Vasco,Nao,Nilton Santos,Sao Januario,s
+Minas Gerais,Classico Mineiro,Atletico-MG,Cruzeiro,Parcialmente,Independencia,Mineirao,s
+Minas Gerais,Classico das Multidões,America-MG,Atletico-MG,sim,Independencia,Independencia,s
+Rio Grande do Sul,Grenal,Gremio,Internacional,Nao,Arena do Gremio,Beira-Rio,s
+Parana,Atletiba,Athletico-PR,Coritiba,Nao,Arena da Baixada,Couto Pereira,s
+Santa Catarina,Classico da Amizade,Figueirense,Avai,Nao,Orlando Scarpelli,Ressacada,s
+Bahia,Ba-Vi,Bahia,Vitoria,Parcialmente,Fonte Nova,Fonte Nova,s
+Pernambuco,Classico dos Classicos,Sport,Nautico,Nao,Ilha do Retiro,Aflitos,s
+Pernambuco,Classico das Multidões,Sport,Santa Cruz,Nao,Ilha do Retiro,Arruda,s
+Pernambuco,Classico das Emoções,Nautico,Santa Cruz,Nao,Aflitos,Arruda,s
+Ceara,Classico-Rei,Fortaleza,Ceara,Sim,Castelao,Castelao,s
+Goias,Classico do Cerrado,Goias,Vila Nova,Nao,Serrinha,Onesio Brasileiro,s
+Interestaduais,Classico dos Milhões,Flamengo,Corinthians,Nao,Maracana,Neo Quimica Arena,s
+Interestaduais,Classico Nacional,Flamengo,Palmeiras,Nao,Maracana,Allianz Parque,s
+Interestaduais,Majestoso Brasileiro,Sao Paulo,Flamengo,Nao,Morumbi,Maracana,s

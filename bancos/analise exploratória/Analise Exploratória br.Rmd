@@ -1,0 +1,126 @@
+---
+title: "Análise Exploratória de Dados do Campeonato Brasileiro de Futebol (2003 à 2024)"
+author: "Nikolas Neves de Figueiredo"
+date: "`r format(Sys.Date(), '%d de %B de %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: journal
+    code_folding: hide
+  pdf_document:
+    latex_engine: xelatex
+    toc: true
+    number_sections: true
+    fig_caption: true
+  word_document:
+    toc: true
+    number_sections: true
+    fig_caption: true
+fontsize: 12pt
+geometry: margin=1in
+lang: "pt-BR"
+---
+
+# **Introdução**
+
+Este relatório surge como um estudo do Campeonato Brasileiro Série A, que é um dos objetos de estudo da minha dissertação de mestrado em Estatística Aplicada e Biometria. As análises foram feitas em linguagem R utilizando a IDE RStudio e o relatório foi gerado em R Markdown. Os dados utilizados foram disponibilizados por @CampBR, por meio da plataforma Kaggle. Ainda, parte fundamental do trabalho de um estatístico é criar e manipular dados. Assim, este relatório busca deixar esse processo explícito, tanto como forma de valorizar essas ferramentas quanto para garantir a replicabilidade dessa análise.
+
+## **Objetivos do Relatório**
+
+O objetivo deste relatório é apresentar uma análise exploratória dos dados do Campeonato Brasileiro Série A, com foco em identificar padrões, tendências e insights que possam ser úteis para análises futuras e para a tomada de decisões estratégicas na elaboração de modelos de predição.
+
+### **Objetivos Específicos**
+
+Ainda deseja-se:
+
+-   Observar quais times participaram dessa competição.
+
+-   Contabilizar a participação dos times e sua relevância para a competição.
+
+-   Entender a distribuição dos gols na competição.
+
+-   Visualizar a distribuição dos jogos em relação aos estádios e aos estados do Brasil.
+
+## **Pacotes Utilizados**
+
+```{r, message=F, class.source = 'fold-show'}
+#Pacotes
+library(tidyverse)
+
+```
+
+# Importação dos Dados
+
+Leitura dos dados.
+
+```{r, echo=T, collapse=F, class.source = 'fold-show'}
+br <- read_csv("br.csv", 
+     col_types = cols(ID = col_integer(), 
+         rodata = col_integer(), data = col_date(format = "%d/%m/%Y"), 
+         ano = col_integer(), hora = col_time(format = "%H:%M"), 
+         mandante_Placar = col_integer(), 
+         visitante_Placar = col_integer()))
+
+```
+
+Observando a estrutura dos dados, é possível visualizar uma tabela com **8.405** linhas e **17** colunas. Cada uma dessas linhas representa uma partida, contendo informações sobre a data, hora, local da partida; informações dos times que se enfrentaram, a formação técnica e o técnico responsável; e informações sobre o resultado do confronto, como placar e time vencedor.
+
+```{r, echo=T,results='markup', collapse=F, , class.source = 'fold-show'}
+glimpse(br)
+```
+
+**Observação**: Ao contrário do que o comando acima sugere, as colunas de formação tática e do técnico responsável pelos times mandante e visitante não são colunas inteiramente compostas por "NA". As informações sobre o técnico começaram a ser coletadas a partir de 2014, e em 2015 foram adicionadas informações sobre a formação dos times. Como essas variáveis não têm impacto significativo nos objetivos da análise, a abordagem adotada foi: manter os dados existentes, não adotar nenhuma técnica de completamento dos dados faltantes e apenas observar essas métricas a partir dos anos indicados.
+
+```{r, echo=T, collapse=T, class.source = 'fold-show'}
+sum(table(br$formacao_mandante))
+sum(table(br$formacao_visitante))
+sum(table(br$tecnico_mandante))
+sum(table(br$tecnico_visitante))
+```
+
+------------------------------------------------------------------------
+
+
+# Explorando os Dados
+
+## Observando o Campeonato
+
+## Observando as edições
+
+## Observando os times
+
+## Observando os Campos
+
+# Conclusões 
+
+
+
+
+
+
+
+
+
+
+
+
+```{r, message=FALSE, warning=FALSE}
+# Pacotes
+library(tidyverse)
+
+```
+
+# Importando e explorando os dados.
+
+```{r}
+# Subir dados
+br <- read_csv("br.csv", col_types = cols(ID = col_integer(), 
+    rodata = col_integer(), data = col_date(format = "%d/%m/%Y"), 
+    ano = col_integer(), hora = col_time(format = "%H:%M"), 
+    mandante_Placar = col_integer(), visitante_Placar = col_integer()))
+View(br)
+```
+
+
